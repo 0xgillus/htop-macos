@@ -1,0 +1,18 @@
+[package]
+name = "htop-macos"
+version = "0.1.0"
+edition = "2024"
+authors = ["0xgillus <214871204+0xgillus@users.noreply.github.com>"]
+description = "A modern, interactive, htop-style system monitor for macOS in the terminal."
+repository = "https://github.com/0xgillus/htop-macos"
+license = "MIT"
+
+[dependencies]
+sysinfo = "0.30"
+ratatui = "0.26"
+crossterm = "0.27"
+users = "0.11"
+
+[[bin]]
+name = "htop-macos"
+path = "src/main.rs"
