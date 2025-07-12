@@ -126,7 +126,7 @@ impl App {
         self.used_swap = sys.used_swap();
         self.mem_usage = if self.total_mem > 0 { (self.used_mem as f64 / self.total_mem as f64) * 100.0 } else { 0.0 };
         self.swap_usage = if self.total_swap > 0 { (self.used_swap as f64 / self.total_swap as f64) * 100.0 } else { 0.0 };
-        
+
         let num_cpus = self.cpus.len() as f32;
         let mut procs: Vec<ProcessInfo> = sys.processes().values().map(|p| {
             ProcessInfo {
@@ -158,12 +158,12 @@ impl App {
         });
         self.processes = procs;
     }
-    
+
     // ADDED BACK: Methods for tree view
     fn tree_ordered_processes(&self) -> Vec<(usize, &ProcessInfo)> {
         let mut pid_map: HashMap<u32, Vec<&ProcessInfo>> = HashMap::new();
         let mut root_procs: Vec<&ProcessInfo> = Vec::new();
-        
+
         // Create a set of all PIDs for quick lookups
         let all_pids: HashMap<u32, ()> = self.processes.iter().map(|p| (p.pid, ())).collect();
 
@@ -175,7 +175,7 @@ impl App {
                 pid_map.entry(proc.ppid).or_default().push(proc);
             }
         }
-        
+
         root_procs.sort_by_key(|p| p.pid);
         let mut ordered_list = Vec::new();
         for root in root_procs {
@@ -200,7 +200,7 @@ impl App {
             }
         }
     }
-    
+
     fn filtered_processes(&self) -> Vec<&ProcessInfo> {
         if let Some(ref filter) = self.active_filter {
             let filter_lower = filter.to_lowercase();
@@ -221,7 +221,7 @@ impl App {
             self.filtered_processes().get(idx).map(|p| p.pid)
         }
     }
-    
+
     fn get_list_length(&self) -> usize {
         if self.tree_view {
             self.processes.len() // Tree view shows all processes
@@ -249,7 +249,7 @@ impl App {
         };
         self.state.select(Some(i));
     }
-    
+
     fn page_down(&mut self, page_size: usize) {
         let len = self.get_list_length();
         if len == 0 { return; }
@@ -265,7 +265,7 @@ impl App {
         let new_i = i.saturating_sub(page_size);
         self.state.select(Some(new_i));
     }
-    
+
     fn home(&mut self) {
         if self.get_list_length() > 0 { self.state.select(Some(0)); }
     }
@@ -296,7 +296,7 @@ impl App {
         };
         self.kill_menu_state.select(Some(i));
     }
-    
+
     fn previous_kill_signal(&mut self) {
         let i = match self.kill_menu_state.selected() {
             Some(i) => if i == 0 { self.kill_signals.len() - 1 } else { i - 1 },
@@ -321,8 +321,8 @@ fn format_time(secs: u64) -> String {
     let mins = secs / 60;
     let hours = mins / 60;
     let days = hours / 24;
-    if days > 99 { format!("{}d", days) } 
-    else if days > 0 { format!("{:02}d{:02}h", days, hours % 24) } 
+    if days > 99 { format!("{}d", days) }
+    else if days > 0 { format!("{:02}d{:02}h", days, hours % 24) }
     else { format!("{:02}:{:02}:{:02}", hours, mins % 60, secs % 60) }
 }
 
@@ -373,7 +373,7 @@ fn main() -> Result<(), io::Error> {
 
     let app = Arc::new(Mutex::new(App::new()));
     let running = Arc::new(Mutex::new(true));
-    
+
     {
         let app = Arc::clone(&app);
         let running = Arc::clone(&running);
@@ -397,10 +397,10 @@ fn main() -> Result<(), io::Error> {
                 .direction(Direction::Vertical)
                 .constraints([Constraint::Length(5), Constraint::Min(10), Constraint::Length(3)])
                 .split(size);
-            
+
             // --- HEADER ---
             let header_chunks = Layout::default().direction(Direction::Horizontal).constraints([Constraint::Percentage(50), Constraint::Percentage(50)]).split(chunks[0]);
-            
+
             let num_cpus = app_guard.cpus.len();
             if num_cpus > 0 {
                 let cpu_constraints: Vec<Constraint> = (0..num_cpus).map(|_| Constraint::Ratio(1, num_cpus as u32)).collect();
@@ -410,15 +410,15 @@ fn main() -> Result<(), io::Error> {
                     f.render_widget(gauge, cpu_chunks[i]);
                 }
             }
-            
+
             let right_header_chunks = Layout::default().direction(Direction::Vertical).constraints([Constraint::Length(1), Constraint::Length(1), Constraint::Length(3)]).split(header_chunks[1]);
-            
+
             let mem_text = format!("Mem[{} / {}MiB]", app_guard.used_mem / 1024 / 1024, app_guard.total_mem / 1024 / 1024);
             f.render_widget(Paragraph::new(mem_text).style(Style::default().fg(Color::Cyan)), right_header_chunks[0]);
 
             let swp_text = format!("Swp[{} / {}MiB]", app_guard.used_swap / 1024 / 1024, app_guard.total_swap / 1024 / 1024);
             f.render_widget(Paragraph::new(swp_text).style(Style::default().fg(Color::Magenta)), right_header_chunks[1]);
-            
+
             let tasks_text = format!("Tasks: {}, Load Avg: {:.2} {:.2} {:.2}", app_guard.processes.len(), app_guard.load_avg.one, app_guard.load_avg.five, app_guard.load_avg.fifteen);
             let uptime_text = format!("Uptime: {}", format_uptime(app_guard.uptime));
             f.render_widget(Paragraph::new(format!("{}\n{}", tasks_text, uptime_text)), right_header_chunks[2]);
@@ -462,7 +462,7 @@ fn main() -> Result<(), io::Error> {
             if app_guard.input_mode == InputMode::Search {
                 let search_text = format!("/{}", app_guard.search_query);
                 let search_bar = Paragraph::new(search_text.clone()).style(Style::default().fg(Color::Yellow)).block(Block::default().borders(Borders::ALL).title("Search (Esc to cancel, Enter to apply)"));
-                f.render_widget(Clear, footer_area); 
+                f.render_widget(Clear, footer_area);
                 f.render_widget(search_bar, footer_area);
                 f.set_cursor(footer_area.x + search_text.len() as u16 + 1, footer_area.y + 1);
             } else {
@@ -474,7 +474,7 @@ fn main() -> Result<(), io::Error> {
                 } else if let Some(msg) = &app_guard.message { msg.clone() } else { "".to_string() };
                 f.render_widget(Paragraph::new(dynamic_text), footer_chunks[0]);
             }
-            
+
             // --- POPUPS (drawn last to be on top) ---
             if app_guard.input_mode == InputMode::KillMenu {
                 let items: Vec<ListItem> = app_guard.kill_signals.iter().map(|(s, _)| ListItem::new(*s)).collect();
@@ -482,7 +482,7 @@ fn main() -> Result<(), io::Error> {
                     .block(Block::default().borders(Borders::ALL).title("Select signal"))
                     .highlight_style(Style::default().bg(Color::Blue).fg(Color::White))
                     .highlight_symbol(">> ");
-                
+
                 let area = centered_rect(20, 30, size);
                 f.render_widget(Clear, area);
                 f.render_stateful_widget(list, area, &mut app_guard.kill_menu_state);
@@ -500,6 +500,11 @@ fn main() -> Result<(), io::Error> {
                         KeyCode::Char('q') | KeyCode::F(10) => { *running.lock().unwrap() = false; break; }
                         KeyCode::Char('/') => { app.input_mode = InputMode::Search; app.message = None; }
                         KeyCode::Char('I') | KeyCode::Char('i') => { let s = app.sort_by; app.set_sort_by(s); }
+                        KeyCode::Char('P') | KeyCode::Char('p') => app.set_sort_by(SortBy::PID),
+                        KeyCode::Char('U') | KeyCode::Char('u') => app.set_sort_by(SortBy::User),
+                        KeyCode::Char('M') | KeyCode::Char('m') => app.set_sort_by(SortBy::MEM),
+                        KeyCode::Char('T') | KeyCode::Char('t') => app.set_sort_by(SortBy::Time),
+                        KeyCode::Char('C') | KeyCode::Char('c') => app.set_sort_by(SortBy::Command),
                         KeyCode::Down => app.next(),
                         KeyCode::Up => app.previous(),
                         KeyCode::PageDown => app.page_down(page_size),
