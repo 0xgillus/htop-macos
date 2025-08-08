@@ -14,7 +14,7 @@ A modern, interactive, htop-style system monitor for macOS in the terminal.
 ### With Cargo (recommended)
 
 ```
-cargo install --git https://github.com/0xgillus/htop-macos
+cargo install --git https://github.com/mmoz-root/htop-macos
 ```
 
 Or, after publishing to crates.io:
